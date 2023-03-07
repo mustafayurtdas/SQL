@@ -49,6 +49,223 @@ UPDATE student_info SET student_dob = '11-Apr-1996',student_name = 'MARK TWAIN' 
 
 UPDATE student_info SET student_dob = '01-Aug-2021' WHERE student_id < 106;
 
+--Tüm age değerlerini en yüksek age değerine güncelleyin.
+
+UPDATE student_info SET student_age =(SELECT max(student_age) FROM student_info);
+
+--Tüm student_dob değerlerini en düşük student_dob değerine güncelleyin.
+
+update student_info set student_dob = (select MIN(student_dob)from student_info);
+
 
 
 SELECT * FROM student_info;
+
+
+
+CREATE TABLE workers
+(
+worker_id SMALLINT,
+worker_name VARCHAR(50),
+worker_salary SMALLINT,
+CONSTRAINT worker_id_pk PRIMARY KEY(worker_id)
+);
+
+INSERT INTO workers VALUES(101, 'Ali Can', 12000);
+INSERT INTO workers VALUES(102, 'Veli Han', 2000);
+INSERT INTO workers VALUES(103, 'Ayse Kan', 7000);
+INSERT INTO workers VALUES(104, 'Angie Ocean', 8500);
+
+--Veli Han'ın salary değerini en yüksek salary değerinin %20 düşüğüne yükseltin.
+
+UPDATE workers 
+SET worker_salary =(SELECT MAX(worker_salary)*0.8 FROM workers) 
+WHERE worker_name = 'Veli Han';
+
+
+--ÖDEV: Ali Can'ın salary değerini en düşük salary değerinin %30 fazlasına düşürün.
+
+UPDATE workers SET worker_salary =
+(SELECT MIN(worker_salary)*1.3 FROM workers) 
+	WHERE worker_name = 'Ali Can';
+
+
+--Ortalama salary değerinden düşük olan salary değerlerini 1000 artırın.
+
+UPDATE workers 
+SET worker_salary = worker_salary + 1000 
+WHERE worker_salary < (SELECT AVG(worker_salary) FROM workers);
+
+--Ödev: Ortalama salary değerinden düşük salary değerlerine ortalama salary değeri atayın.
+
+UPDATE workers 
+SET worker_salary = (SELECT AVG(worker_salary) FROM workers) 
+WHERE worker_salary < (SELECT AVG(worker_salary) FROM workers);
+
+
+SELECT * FROM workers;
+
+
+CREATE TABLE people
+(
+ssn INT,
+name VARCHAR(50),
+address VARCHAR(80)
+);
+
+INSERT INTO people VALUES(123456789, 'Mark Star', 'Florida');
+INSERT INTO people VALUES(234567890, 'Angie Way', 'Virginia');
+INSERT INTO people VALUES(345678901, 'Maryy Tien', 'New Jersey');
+INSERT INTO people(ssn, address) VALUES(456789012, 'Michigan');
+INSERT INTO people(ssn, address) VALUES(567890123, 'California');
+INSERT INTO people(ssn, name) VALUES(567890123, 'California');
+
+
+--null name değerlerini "To be inserted later" değerine güncelleyin.
+
+UPDATE people 
+SET name = 'To be inserted later'
+WHERE name IS NULL;
+
+--null address değerlerini "To be inserted later" değerine güncelleyin.
+
+UPDATE people 
+SET address = 'To be inserted later'
+WHERE address IS NULL;
+
+
+--İsimsiz recordları silin.
+
+DELETE FROM people 
+WHERE name = 'To be inserted later';
+
+--ssn değeri 123456789'dan büyük ve 345678901'den küçük olan recorları sil.
+
+DELETE FROM people
+WHERE ssn>123456789 AND ssn<345678901;
+
+--name değeri NULL olmayan tüm recordları silin.
+
+DELETE FROM people
+WHERE name IS NOT NULL;
+
+--address değeri Michigan olmayan kaydı siliniz
+--(Java)!= ==> (SQL)<>
+DELETE FROM people
+WHERE address <> 'Michigan';
+
+
+SELECT * FROM people;
+
+
+CREATE TABLE workers2
+(
+    id SMALLINT,
+    name VARCHAR(50),
+    salary SMALLINT,
+    CONSTRAINT id4_pk PRIMARY KEY(id)
+);
+INSERT INTO workers2 VALUES(10001, 'Ali Can', 12000);
+INSERT INTO workers2 VALUES(10002, 'Veli Han', 2000);
+INSERT INTO workers2 VALUES(10003, 'Mary Star', 7000);
+INSERT INTO workers2 VALUES(10004, 'Angie Ocean', 8500);
+
+--En düşük ve en büyük salary değerlerine sahip recordları çağırın
+
+SELECT * FROM workers2 
+WHERE salary 
+IN((SELECT MIN(salary) FROM workers2) , (SELECT MAX(salary) FROM workers2));
+
+
+--En düşük salary değerini bulun.
+
+SELECT MIN(salary) AS min_salary FROM workers2;
+
+--Record sayısını(adetini) bulun.
+
+SELECT COUNT(*) AS satir_sayisi FROM workers2;
+
+--Interview Question: En yüksek ikinci salary değerini çağırın.
+
+-- 1. YOL
+select max(salary) from workers2
+where salary<(select max(salary)from workers2);
+
+-- 2. YOL (RECOMMENDED)
+SELECT salary FROM workers2 ORDER BY salary DESC OFFSET 1 LIMIT 1;
+-- OR
+SELECT salary FROM workers2 ORDER BY salary DESC OFFSET 1 ROW FETCH NEXT 1 ROW ONLY;
+
+
+
+--Salary değeri en düşük ikinci değere sahip record'ı çağırın. (Ödev) 1 ve 2. Yol
+
+-- 1. YOL
+select min(salary) from workers2
+where salary<(select min(salary)from workers2);
+
+-- 2. YOL (RECOMMENDED)
+SELECT salary FROM workers2 ORDER BY salary OFFSET 1 LIMIT 1;
+-- OR
+SELECT salary FROM workers2 ORDER BY salary OFFSET 1 ROW FETCH NEXT 1 ROW ONLY;
+
+
+
+
+CREATE TABLE customers_likes
+(
+  product_id CHAR(10),
+  customer_name VARCHAR(50),
+  liked_product VARCHAR(50)
+);
+INSERT INTO customers_likes VALUES (10, 'Mark', 'Orange');
+INSERT INTO customers_likes VALUES (50, 'Mark', 'Pineapple');
+INSERT INTO customers_likes VALUES (60, 'John', 'Avocado');
+INSERT INTO customers_likes VALUES (30, 'Lary', 'Cherries');
+INSERT INTO customers_likes VALUES (20, 'Mark', 'Apple');
+INSERT INTO customers_likes VALUES (10, 'Adem', 'Orange');
+INSERT INTO customers_likes VALUES (40, 'John', 'Apricot');
+INSERT INTO customers_likes VALUES (20, 'Eddie', 'Apple');
+
+
+--liked_product değerleri arasında Lary'nin değeri varsa customer_name değerlerini "No name" olarak güncelle.
+
+UPDATE customers_likes 
+SET customer_name = 'No name'
+WHERE EXISTS (SELECT liked_product FROM customers_likes WHERE customer_name = 'Lary');
+
+
+CREATE TABLE employees
+(
+  id CHAR(9),
+  name VARCHAR(50),
+  state VARCHAR(50),
+  salary SMALLINT,
+  company VARCHAR(20)
+);
+INSERT INTO employees VALUES(123456789, 'John Walker', 'Florida', 2500, 'IBM');
+INSERT INTO employees VALUES(234567890, 'Brad Pitt', 'Florida', 1500, 'APPLE');
+INSERT INTO employees VALUES(345678901, 'Eddie Murphy', 'Texas', 3000, 'IBM');
+INSERT INTO employees VALUES(456789012, 'Eddie Murphy', 'Virginia', 1000, 'GOOGLE');
+INSERT INTO employees VALUES(567890123, 'Eddie Murphy', 'Texas', 7000, 'MICROSOFT');
+INSERT INTO employees VALUES(456789012, 'Brad Pitt', 'Texas', 1500, 'GOOGLE');
+INSERT INTO employees VALUES(123456710, 'Mark Stone', 'Pennsylvania', 2500, 'IBM');
+SELECT * FROM employees;
+CREATE TABLE companies
+(
+  company_id CHAR(9),
+  company VARCHAR(20),
+  number_of_employees SMALLINT
+);
+INSERT INTO companies VALUES(100, 'IBM', 12000);
+INSERT INTO companies VALUES(101, 'GOOGLE', 18000);
+INSERT INTO companies VALUES(102, 'MICROSOFT', 10000);
+INSERT INTO companies VALUES(103, 'APPLE', 21000);
+SELECT * FROM companies;
+
+--number_of_employees değeri 15000'den büyük olan name ve company değerlerini çağırın.
+
+
+SELECT name, company FROM employees 
+WHERE company IN(SELECT  company FROM companies WHERE number_of_employees > 15000);
+
